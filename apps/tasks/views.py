@@ -12,10 +12,13 @@ class TaskViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         if self.action == 'report' and self.request.user.user_role.role_code in ['Admin', 'SuperAdmin']:
             return Task.objects.filter(status='Completed')
+        elif self.request.user.user_role.role_code in ['Admin', 'SuperAdmin']:
+            return self.queryset
+        print("test task user ")
         return Task.objects.filter(assigned_to=self.request.user)
 
     def perform_create(self, serializer):
-        serializer.save(assigned_to=self.request.user)
+        serializer.save(assigned_by=self.request.user)
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()

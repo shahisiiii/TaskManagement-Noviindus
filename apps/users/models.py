@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from rest_framework_simplejwt.tokens import RefreshToken
 
 # Create your models here.
 
@@ -13,7 +14,18 @@ class User(AbstractUser):
     class Meta:
         verbose_name = 'User'
         verbose_name_plural = 'Users'
-        
+    # def save(self, *args, **kwargs):
+    #     if self.pk is None: 
+    #         self.set_password(self.password)  
+    #     super().save(*args, **kwargs)  
+
+    def get_tokens(self):
+        refresh = RefreshToken.for_user(self)
+        return {
+            'refresh': str(refresh),
+            'access': str(refresh.access_token)
+        }
+
 class UserRole(models.Model):
     role_name = models.CharField(max_length=255,unique=True)
     role_code = models.CharField(max_length=255)

@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <style>
+        /* Global styles */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7fc;
+        }
+
+        h1, h2 {
+            color: #2c3e50;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Main container */
+        .container {
+            width: 90%;
+            margin: 0 auto;
+            max-width: 1200px;
+            padding: 2rem 0;
+        }
+
+        /* Section styles */
+        .section {
+            background-color: #fff;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Table styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #ecf0f1;
+            color: #34495e;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        /* Button styles */
+        .button {
+            padding: 0.8rem 1.5rem;
+            border-radius: 6px;
+            text-decoration: none;
+            color: #fff;
+            display: inline-block;
+            font-size: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s ease-in-out;
+        }
+
+        .create-btn {
+            background-color: #27ae60;
+        }
+
+        .create-btn:hover {
+            background-color: #2ecc71;
+            transform: scale(1.05);
+        }
+
+        .logout-btn {
+            background-color: #3498db;
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+        }
+
+        .logout-btn:hover {
+            background-color: #2980b9;
+            transform: scale(1.05);
+        }
+
+        .btn-edit {
+            background-color: #3498db;
+            padding: 0.6rem 1.2rem;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .btn-edit:hover {
+            background-color: #2980b9;
+        }
+
+        .btn-edit:focus {
+            outline: none;
+        }
+
+        .btn-delete {
+            background-color: #e74c3c;
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 4px;
+            text-decoration: none;
+        }
+
+        .btn-delete:hover {
+            background-color: #c0392b;
+        }
+
+        .alert-messages {
+            margin: 10px;
+        }
+
+        .alert {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+
+        .alert-error {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .alert-success {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .alert-warning {
+            background-color: #ff9800;
+            color: white;
+        }
+
+        .alert-info {
+            background-color: #2196F3;
+            color: white;
+        }
+
+        /* Responsive Design */
+        @media screen and (max-width: 768px) {
+            .container {
+                width: 95%;
+            }
+
+            table {
+                font-size: 0.9rem;
+            }
+
+            .button {
+                padding: 0.6rem 1.2rem;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .button {
+                width: 100%;
+                padding: 1rem 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Display messages -->
+    {% if messages %}
+        <div class="alert-messages">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="container">
+        <h1>Welcome, {{ request.user.username }}</h1>
+
+        <a href="{% url 'logout' %}" class="button logout-btn">Logout</a>
+
+        {% if request.user.is_authenticated %}
+            {% if request.user.user_role.role_name == 'SuperAdmin' %}
+                <!-- SuperAdmin View -->
+                <a href="{% url 'create_user' %}" class="button create-btn">Create User</a>
+
+                <div class="section">
+                    <h2>All Users</h2>
+                    {% if users %}
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Role</th>
+                                    <th>Actions</th>
+                                    <th>Edit Role</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                    <tr>
+                                        <td>{{ user.username }}</td>
+                                        <td>{{ user.user_role.role_name }}</td>
+                                        <td>
+                                            <a href="{% url 'delete_user' user.id %}" class="btn-delete">Delete</a>
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'edit_user_role' user.id %}" class="btn-edit">Edit</a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p>No users found.</p>
+                    {% endif %}
+                </div>
+
+                <div class="section">
+                    <a href="{% url 'create_task' %}" class="button create-btn">Create Task</a>
+                    <h2>All Tasks</h2>
+                    {% if tasks %}
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Status</th>
+                                    <th>Assigned To</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for task in tasks %}
+                                    <tr>
+                                        <td>{{ task.title }}</td>
+                                        <td>{{ task.status }}</td>
+                                        <td>{{ task.assigned_to.username }}</td>
+                                        <td>
+                                            <a href="{% url 'edit_task' task.id %}" class="btn-edit">Edit</a>
+                                            <a href="{% url 'delete_task' task.id %}" class="btn-delete">Delete</a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p>No tasks available.</p>
+                    {% endif %}
+                </div>
+
+                <div class="section">
+                    <h2>Task Reports</h2>
+                    {% if reports %}
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Worked Hours</th>
+                                    <th>Completion Report</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for task in reports %}
+                                    <tr>
+                                        <td>{{ task.title }}</td>
+                                        <td>{{ task.worked_hours }} hrs</td>
+                                        <td>{{ task.completion_report }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p>No task reports submitted yet.</p>
+                    {% endif %}
+                </div>
+
+            {% elif request.user.user_role.role_name == 'Admin' %}
+                <!-- Admin View -->
+                <a href="{% url 'create_task' %}" class="button create-btn">Create Task</a>
+
+                <div class="section">
+                    <h2>Your Assigned Tasks</h2>
+                    {% if tasks %}
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Status</th>
+                                    <th>Assigned To</th>
+                                     <th>Due Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for task in tasks %}
+                                    <tr>
+                                        <td>{{ task.title }}</td>
+                                        <td>{{ task.status }}</td>
+                                        <td>{{ task.assigned_to.username }}</td>
+                                        <td>{{ task.due_date }}</td>
+                                        <td>
+                                            <a href="{% url 'edit_task' task.id %}" class="btn-edit">Edit</a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p>No tasks assigned to you.</p>
+                    {% endif %}
+                </div>
+
+                <div class="section">
+                    <h2>User Reports</h2>
+                    {% if reports %}
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Worked Hours</th>
+                                    <th>Completion Report</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for task in reports %}
+                                    <tr>
+                                        <td>{{ task.title }}</td>
+                                        <td>{{ task.worked_hours }} hrs</td>
+                                        <td>{{ task.completion_report }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p>No reports submitted by users.</p>
+                    {% endif %}
+                </div>
+
+            {% elif request.user.user_role.role_name == 'User' %}
+                <!-- User View -->
+                <h2>Your Tasks</h2>
+                {% if tasks %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Status</th>
+                                <th>Assigned By</th>
+                                <th>Due Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for task in tasks %}
+                                <tr>
+                                    <td>{{ task.title }}</td>
+                                    <td>{{ task.status }}</td>
+                                    <td>{{ task.assigned_by.username }}</td>
+                                    <td>{{ task.due_date }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p>No tasks assigned to you.</p>
+                {% endif %}
+
+                <div class="section">
+                    <h2>Task Reports</h2>
+                    {% if reports %}
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Worked Hours</th>
+                                    <th>Completion Report</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for task in reports %}
+                                    <tr>
+                                        <td>{{ task.title }}</td>
+                                        <td>{{ task.worked_hours }} hrs</td>
+                                        <td>{{ task.completion_report }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p>No task reports submitted yet.</p>
+                    {% endif %}
+                </div>
+            {% else %}
+                <p>You do not have access to this dashboard.</p>
+            {% endif %}
+        {% else %}
+            <p>Please <a href="{% url 'login' %}">login</a> to view the dashboard.</p>
+        {% endif %}
+    </div>
+</body>
+</html>

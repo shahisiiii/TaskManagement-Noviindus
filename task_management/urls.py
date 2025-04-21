@@ -23,6 +23,8 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
+from apps.users import views
+from django.contrib.auth import views as auth_views
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -47,5 +49,20 @@ urlpatterns = [
     
     # API endpoints
     path('api/users/', include('apps.users.urls')),
+    path('api/tasks/', include('apps.tasks.urls')),
+    
+    path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
+    path('dashboard/', views.dashboard_view, name='dashboard'),
+    path('create/', views.create_user, name='create_user'),
+    path('delete_user/<int:user_id>/',views.delete_user, name='delete_user'),  # URL pattern for delete_user
+    path('tasks/create/', views.create_task, name='create_task'),
+    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('register/', views.register_template_view, name='register'),
+    path('edit_user/<int:user_id>/', views.edit_user, name='edit_user_role'),
+    path('task/edit/<int:task_id>/', views.edit_task, name='edit_task'),
+    path('task/delete/<int:task_id>/', views.delete_task, name='delete_task'),
+
+
 ]
 

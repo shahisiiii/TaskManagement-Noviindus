@@ -7,6 +7,7 @@ from rest_framework.exceptions import ValidationError
 from django.db.transaction import atomic
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import authenticate
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 class RegisterSerializer(ModelSerializer):
@@ -46,7 +47,7 @@ class RegisterSerializer(ModelSerializer):
         
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     username = serializers.CharField(required=True)
-    password = serializers.CharField(required=True)
+    password = serializers.CharField(required=True, write_only=True)
 
     def validate(self, attrs):
         username = attrs.get('username')
@@ -55,15 +56,26 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         if not username or not password:
             raise serializers.ValidationError("Both username and password are required.")
 
-        # Force authenticate with username instead of USERNAME_FIELD
-        user = authenticate(request=self.context.get('request'), username=username, password=password)
-
-        if not user:
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
             raise serializers.ValidationError("Invalid username or password.")
 
-        self.user = user
-        data = super().validate(attrs)
-        return data
+        if not user.check_password(password):
+            raise serializers.ValidationError("Invalid username or password.")
+
+        if not user.is_active:
+            raise serializers.ValidationError("User account is disabled.")
+
+        refresh = RefreshToken.for_user(user)
+
+        return {
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+            'user_id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'role': getattr(user.user_role, 'role_name', None),}
 
 
 class UserRoleSerializer(serializers.ModelSerializer):
@@ -83,8 +95,32 @@ class UserSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data):
         user_role = validated_data.pop('user_role')
-        user = User(**validated_data)
-        user.set_password("User@123") 
+        
+        # Extract username & email
+        username = validated_data.get('username')
+        email = validated_data.get('email')
+        # Default password
+        password = "User@123"
+
+        # Permission flags
+        is_staff = False
+        is_superuser = False
+
+        if user_role.role_name == 'SuperAdmin':
+            is_staff = True
+            is_superuser = True
+        elif user_role.role_name == 'Admin':
+            is_staff = True
+
+        # Create user with proper method
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            is_active=True,
+            is_staff=is_staff,
+            is_superuser=is_superuser
+        )
         user.user_role = user_role
         user.save()
         return user
@@ -111,5 +147,3 @@ class UserSerializer(serializers.ModelSerializer):
                 "description": obj.user_role.description
             }
         return None
-
-
