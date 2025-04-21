@@ -86,15 +86,17 @@ class UserRoleSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     role = UserRoleSerializer(read_only=True)
     user_role = serializers.PrimaryKeyRelatedField(queryset=UserRole.objects.all(), write_only=True)
+    assigned_admin = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), write_only=True)
     user_role_details = serializers.SerializerMethodField(read_only=True)
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'user_role', 'first_name', 'last_name', 'is_active', 'is_staff', 'role','user_role_details']
+        fields = ['id', 'assigned_admin','username', 'email', 'user_role', 'first_name', 'last_name', 'is_active', 'is_staff', 'role','user_role_details']
 
     
     
     def create(self, validated_data):
         user_role = validated_data.pop('user_role')
+        assigned_admin = validated_data.pop('assigned_admin')
         
         # Extract username & email
         username = validated_data.get('username')
@@ -121,6 +123,8 @@ class UserSerializer(serializers.ModelSerializer):
             is_staff=is_staff,
             is_superuser=is_superuser
         )
+        if user_role.role_name == 'User':
+            user.assigned_admin = assigned_admin
         user.user_role = user_role
         user.save()
         return user

@@ -10,6 +10,7 @@ class User(AbstractUser):
     USERNAME_FIELD = 'username'
     # REQUIRED_FIELDS = ['username']
     user_role = models.ForeignKey('users.UserRole',on_delete=models.SET_NULL,blank=True,null=True)
+    assigned_admin = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, limit_choices_to={'user_role__role_name': 'Admin'}, related_name='assigned_users')
 
     class Meta:
         verbose_name = 'User'

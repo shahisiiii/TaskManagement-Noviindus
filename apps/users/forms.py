@@ -33,10 +33,16 @@ class UserForm(UserCreationForm):
         required=True,
         label="Role"
     )
+    assigned_admin = forms.ModelChoiceField(
+        queryset=User.objects.filter(user_role__role_name='Admin'),
+        empty_label="Select a Admin",
+        required=False,
+        label="AssignedAdmin"
+    )
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'password1', 'password2', 'user_role']
+        fields = ['username', 'email', 'password1', 'password2', 'user_role','assigned_admin']
 
 
 class UserEditForm(forms.ModelForm):

@@ -14,7 +14,12 @@ A Django-based task management system with user roles and JWT authentication.
 
 - `GET /api/tasks/tasks/`: List user’s tasks.
 - `PUT /api/tasks/tasks/{id}/`: Update task status and add a report.
+- `PATCH /api/tasks/tasks/{id}/`: Partial Update task status and add a report.
 - `GET /api/tasks/tasks/{id}/report`: View completion report for a task.
+- `POST /api/users/register/`: Register SuperAdmin.
+- `POST /api/users/login/user-login/`: Log in user.
+- `POST /api/tasks/tasks/`: Create task.
+
 
 ## Tech Stack
 

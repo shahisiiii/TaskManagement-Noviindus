@@ -101,6 +101,12 @@
                 {{ form.user_role.errors }}
             </div>
 
+            <div>
+                <label for="{{ form.assigned_admin.id_for_label }}">Assigned to Admin</label>
+                {{ form.assigned_admin }}
+                {{ form.assigned_admin.errors }}
+            </div>
+
             <button type="submit">Create User</button>
         </form>
     </div>

@@ -18,4 +18,10 @@ class TaskForm(forms.ModelForm):
         user = kwargs.pop('user', None)
         super(TaskForm, self).__init__(*args, **kwargs)
         if user and hasattr(user, 'user_role') and user.user_role.role_name == 'Admin':
-            self.fields['assigned_to'].queryset = User.objects.exclude(id=user.id)
+            self.fields['assigned_to'].queryset = User.objects.filter(assigned_admin=user).exclude(id=user.id,user_role__role_name='User')
+        if user and hasattr(user, 'user_role') and user.user_role.role_name == 'SuperAdmin':
+            self.fields['assigned_to'].queryset = User.objects.exclude(
+                id=user.id
+            ).filter(
+                user_role__role_name='User'
+            )

@@ -140,7 +140,7 @@ class UserViewSet(viewsets.ModelViewSet):
         """
         Custom action to list all users where user_role.role_code == 'User'
         """
-        user_role_code = 'User'
+        user_role_code = 'Admin'
         users = User.objects.filter(user_role__role_code=user_role_code)
         serializer = self.get_serializer(users, many=True)
         return Response(serializer.data)
@@ -149,12 +149,12 @@ class UserAuthView(viewsets.ViewSet):
 
     def get_permissions(self):
         print(self.action)
-        if self.action in ['mobile_login']: 
+        if self.action in ['user_login']: 
             return [AllowAny()]
         return [IsAuthenticated()]
     
-    @action(detail=False, methods=['post'], url_path='mobile-login')
-    def mobile_login(self, request):
+    @action(detail=False, methods=['post'], url_path='user-login')
+    def user_login(self, request):
         username = request.data.get("username")
         password = request.data.get("password")
 
@@ -314,7 +314,6 @@ def register_template_view(request):
     if request.method == "POST":
         data = {
             "username": request.POST.get("username"),
-            "first_name": request.POST.get("first_name"),
             "email": request.POST.get("email"),
             "password": request.POST.get("password"),
         }
@@ -357,10 +356,10 @@ def edit_user(request, user_id):
 def edit_task(request, task_id):
     task = get_object_or_404(Task, id=task_id)
     if request.method == 'POST':
-        form = TaskForm(request.POST, instance=task)
+        form = TaskForm(request.POST, instance=task,user=request.user)
         if form.is_valid():
             form.save()
             return redirect('dashboard')  # or wherever you want to redirect
     else:
-        form = TaskForm(instance=task)
+        form = TaskForm(instance=task,user=request.user)
     return render(request, 'users/edit_task.html', {'form': form})
